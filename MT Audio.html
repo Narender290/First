@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multiplication Tables (2 to 25)</title>
+<style>
+  :root {
+    --maxw: 900px;
+    --primary:#143b76;
+    --accent:#0f2d5c;
+    --repeat:#2c974b;
+    --bg:#f4f6fb;
+    --card:#fff;
+    --text:#222;
+    --table-odd:#f9fbff;
+    --highlight:#ffdd71;
+  }
+  body { margin:0; font-family:"Segoe UI",Arial,sans-serif; background:var(--bg); color:var(--text); transition:background .3s,color .3s; }
+  header { background:linear-gradient(90deg,var(--primary),#1f4ea2); color:#fff; }
+  .wrap { max-width:var(--maxw); margin:0 auto; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; }
+  h1 { margin:0; font-size:22px; font-weight:600; }
+  .speed-controls { display:flex; align-items:center; gap:6px; }
+  .speed-controls .btn { background:#fff; color:var(--primary); font-weight:600; }
+  .speed-controls .btn:hover { background:#fff; color:var(--accent); }
+  .speed-label { font-weight:600; margin-left:6px; }
+  .page { max-width:var(--maxw); margin:24px auto; padding:0 16px; }
+  .card { background:var(--card); border-radius:14px; box-shadow:0 4px 16px rgba(0,0,0,.08); overflow:hidden; transition:background .3s; }
+  .card-header { 
+    padding: 20px; 
+    border-bottom: 1px solid #eee;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .title { 
+    font-size: 24px; 
+    margin: 0; 
+    font-weight: 600; 
+    color: var(--primary); 
+  }
+  .mode-controls {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+  .controls { margin-bottom:12px; }
+  .btn { padding:8px 14px; border:none; border-radius:8px; background:var(--primary); color:#fff; font-size:15px; cursor:pointer; margin:4px; transition:background .2s; }
+  .btn:hover { background:var(--accent); }
+  .btn.active { background:var(--repeat); }
+  .nav { padding:12px 20px; border-bottom:1px solid #eee; background:#fafbff; }
+  .link-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(50px,1fr)); gap:8px; }
+  .link-grid a { display:block; padding:8px 0; text-align:center; border:1px solid #ddd; border-radius:8px; font-weight:600; text-decoration:none; color:var(--primary); background:#fff; transition:all .2s ease; }
+  .link-grid a:hover { background:#edf2ff; }
+  .link-grid a.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+  table { width:100%; border-collapse:collapse; margin:0; font-size:20px; }
+  td { border:1px solid #eee; padding:10px; text-align:center; font-weight:bold; }
+  tbody tr:nth-child(odd) { background:var(--table-odd); }
+  tbody tr.highlight td:not(:last-child) {
+    background-color: var(--highlight);
+    transition: background-color .3s ease;
+  }
+  .play-btn { cursor:pointer; background:var(--primary); color:#fff; border:none; border-radius:6px; padding:6px 10px; font-size:16px; }
+  .play-btn:hover { background:var(--accent); }
+  .input-area { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .input-box { padding:8px 12px; border-radius:8px; border:1px solid #ccc; width:160px; font-size:15px; }
+  .error { color:red; font-weight:bold; margin-top:6px; display:none; }
+  .pager { 
+    padding:16px; 
+    text-align:center; 
+    border-top:1px solid #eee; 
+    background:#fafbff;
+    position: relative;
+  }
+  .btn:disabled { background: #ccc; cursor: not-allowed; }
+  .btn.clear-btn { background: #fff; color: var(--primary); }
+
+  #bottomPauseBtn {
+    padding: 10px 20px;
+    font-size: 18px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transition: background .3s, transform .2s;
+    margin-top: 0px;
+    display: none;
+  }
+  #bottomPauseBtn:hover {
+    background: var(--accent);
+    transform: translateY(-2px);
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Multiplication Tables (2 to 25)</h1>
+    <div class="speed-controls">
+      <button class="btn" onclick="changeSpeed(-0.2)">➖ Slow</button>
+      <button class="btn" onclick="changeSpeed(0.2)">➕ Fast</button>
+      <span id="speedLabel" class="speed-label"></span>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="title" id="tableTitle">Table of 2</h2>
+      <div class="mode-controls">
+        <button id="normalBtn" class="btn active" onclick="setDelayMode(false)">Normal</button>
+        <button id="delayedBtn" class="btn" onclick="setDelayMode(true)">Delayed</button>
+      </div>
+      <div class="controls">
+        <button class="btn" onclick="readFullTable()">▶ Play</button>
+        <button class="btn" onclick="pauseReading()">⏸ Pause</button>
+        <button id="repeatSingleBtn" class="btn" onclick="toggleRepeatSingle()">🔁 Repeat</button>
+      </div>
+      <div class="input-area">
+        <input type="text" id="tableInput" class="input-box" placeholder="e.g., 2,3,4 or 2-7" />
+        <button class="btn clear-btn" onclick="clearInput()">❌ Clear</button>
+        <button class="btn" onclick="readMultipleTables()">▶ Play</button>
+        <button class="btn" onclick="pauseReading()">⏸ Pause</button>
+        <button id="repeatBtn" class="btn" onclick="toggleRepeat()">🔁 Repeat</button>
+      </div>
+      <div id="errorMsg" class="error">Table not found! Use numbers 2–25.</div>
+    </div>
+    <nav class="nav">
+      <div class="link-grid" id="link-grid"></div>
+    </nav>
+    <div class="table-wrap">
+      <table>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+        <button id="bottomPauseBtn" onclick="pauseReading()">⏸ Pause Reading</button>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  const MIN=2, MAX=25, ROWS=10;
+  let currentTableNumber=MIN, speechRate=1.0, lastTables=null, repeatMode=false, repeatSingleMode=false, isDelayedMode=false;
+  let isReadingActive = false;
+  let timerId = null;
+
+  const titleEl=document.getElementById('tableTitle');
+  const tbodyEl=document.getElementById('tbody');
+  const linkGrid=document.getElementById('link-grid');
+  const speedLabel=document.getElementById('speedLabel');
+  const errorMsg=document.getElementById('errorMsg');
+  const repeatBtn=document.getElementById('repeatBtn');
+  const tableInput=document.getElementById('tableInput');
+  const repeatSingleBtn=document.getElementById('repeatSingleBtn');
+  const normalBtn = document.getElementById('normalBtn');
+  const delayedBtn = document.getElementById('delayedBtn');
+  const bottomPauseBtn = document.getElementById('bottomPauseBtn');
+
+  function numberToWords(num){
+    const ones=["","one","two","three","four","five","six","seven","eight","nine"];
+    const teens=["ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen","nineteen"];
+    const tens=["","","twenty","thirty","forty","fifty","sixty","seventy","eighty","ninety"];
+    if(num===0) return "zero";
+    if(num<10) return ones[num];
+    if(num<20) return teens[num-10];
+    if(num<100) return tens[Math.floor(num/10)]+(num%10!==0?" "+ones[num%10]:"");
+    if(num<1000) return ones[Math.floor(num/100)]+" hundred"+(num%100!==0?" "+numberToWords(num%100):"");
+    return String(num);
+  }
+
+  function stopSpeaking(){ 
+    speechSynthesis.cancel(); 
+    if (timerId) {
+      clearTimeout(timerId);
+      timerId = null;
+    }
+    unhighlightAllRows(); 
+    isReadingActive = false; 
+    updateBottomPauseButton();
+  }
+
+  function highlightRow(rowIndex){
+    unhighlightAllRows();
+    const rows=tbodyEl.querySelectorAll("tr");
+    if(rows[rowIndex]){
+      rows[rowIndex].classList.add("highlight");
+      const rect = rows[rowIndex].getBoundingClientRect();
+      if (rect.bottom > window.innerHeight || rect.top < 0) {
+        rows[rowIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }
+
+  function unhighlightAllRows(){ tbodyEl.querySelectorAll("tr").forEach(row=>row.classList.remove("highlight")); }
+
+  function speak(text, cb, rowIndex=-1){
+    stopSpeaking();
+    isReadingActive = true;
+    updateBottomPauseButton();
+
+    if(rowIndex!==-1){ highlightRow(rowIndex); }
+    let u=new SpeechSynthesisUtterance(text);
+    u.rate=speechRate;
+    u.onend=()=>{
+      if(cb) cb();
+      if (!cb) {
+        isReadingActive = false;
+        updateBottomPauseButton();
+      }
+    };
+    speechSynthesis.speak(u);
+  }
+
+  function changeSpeed(d){ speechRate=Math.max(0.4,Math.min(2.0,speechRate+d)); speedLabel.textContent=`${speechRate.toFixed(1)}x`; }
+  
+  function pauseReading(){ 
+    speechSynthesis.cancel(); 
+    if (timerId) {
+      clearTimeout(timerId);
+      timerId = null;
+    }
+    unhighlightAllRows(); 
+    isReadingActive = false; 
+    updateBottomPauseButton();
+  }
+  
+  function scrollToTop(){ window.scrollTo({ top: 0, behavior: 'smooth' }); }
+
+  function updateBottomPauseButton() {
+    bottomPauseBtn.style.display = isReadingActive ? 'block' : 'none';
+  }
+
+  function setDelayMode(isDelayed){
+    isDelayedMode = isDelayed;
+    if (isDelayedMode) {
+      normalBtn.classList.remove('active');
+      delayedBtn.classList.add('active');
+    } else {
+      normalBtn.classList.add('active');
+      delayedBtn.classList.remove('active');
+    }
+  }
+
+  function readFullTable(){
+    stopSpeaking();
+    isReadingActive = true;
+    updateBottomPauseButton();
+
+    const rows=tbodyEl.querySelectorAll("tr");
+    let i=0;
+    function readNext(){
+      if(i>=rows.length){ 
+        if(repeatSingleMode){ 
+          i=0; 
+          unhighlightAllRows(); 
+          readNext(); 
+        } else { 
+          unhighlightAllRows(); 
+          scrollToTop();
+          isReadingActive = false;
+          updateBottomPauseButton();
+        } 
+        return; 
+      }
+      const s=`${numberToWords(currentTableNumber)} ${numberToWords(i+1)}s are ${numberToWords(currentTableNumber*(i+1))}`;
+      highlightRow(i); 
+      let u=new SpeechSynthesisUtterance(s);
+      u.rate=speechRate;
+      u.onend=()=>{ 
+        i++; 
+        timerId = setTimeout(readNext, isDelayedMode ? 1750 : 0);
+      };
+      speechSynthesis.speak(u);
+    }
+    let initialUtterance = new SpeechSynthesisUtterance(`Table of ${currentTableNumber}`);
+    initialUtterance.rate = speechRate;
+    initialUtterance.onend = readNext;
+    speechSynthesis.speak(initialUtterance);
+  }
+
+  function toggleRepeat(){ repeatMode=!repeatMode; repeatBtn.classList.toggle("active",repeatMode); }
+  
+  function toggleRepeatSingle(){
+    repeatSingleMode = !repeatSingleMode;
+    repeatSingleBtn.classList.toggle("active", repeatSingleMode);
+  }
+
+  function readMultipleTables(customTables){
+    stopSpeaking();
+
+    errorMsg.style.display="none";
+    let tables;
+    if(customTables){ tables=customTables; }
+    else{
+      const input=tableInput.value;
+      if(!input){ alert("Input box is empty!"); return; }
+      tables=getTablesFromInput(input);
+      if(tables.length===0){ errorMsg.style.display="block"; return; }
+      lastTables=tables;
+    }
+
+    // New logic to ensure the button shows after a brief delay
+    // This allows the stopSpeaking() call in render() to complete first.
+    isReadingActive = true; 
+    updateBottomPauseButton();
+
+    let tIndex=0,rIndex=1;
+    function readRow(){
+      if(tIndex>=tables.length){
+        if(repeatMode){ 
+          tIndex=0;
+          rIndex=1;
+          unhighlightAllRows(); 
+          readRow(); 
+        } else { 
+          unhighlightAllRows(); 
+          scrollToTop();
+          isReadingActive = false;
+          updateBottomPauseButton();
+        }
+        return;
+      }
+      let n=tables[tIndex];
+      if(rIndex===1){
+        // Do NOT call render() here as it calls stopSpeaking()
+        currentTableNumber=n; titleEl.textContent=`Table of ${n}`;
+        const rows=[];
+        for(let i=1;i<=ROWS;i++){
+            let result=n*i;
+            let textToSpeak=`${numberToWords(n)} ${numberToWords(i)}s are ${numberToWords(result)}`;
+            rows.push(`<tr data-speak="${textToSpeak}"><td>${n}</td><td>×</td><td>${i}</td><td>=</td><td>${result}</td><td><button class="play-btn" onclick="speak('${textToSpeak}', null, ${i-1})">🔊</button></td></tr>`);
+        }
+        tbodyEl.innerHTML=rows.join('');
+        setActiveLink(n);
+        
+        let initialUtterance = new SpeechSynthesisUtterance(`Table of ${numberToWords(n)}`);
+        initialUtterance.rate = speechRate;
+        initialUtterance.onend = ()=>{ rIndex++; readRow(); };
+        speechSynthesis.speak(initialUtterance);
+        return;
+      }
+      if(rIndex<=ROWS+1){
+        let result=n*(rIndex-1);
+        let text=`${numberToWords(n)} ${numberToWords(rIndex-1)}s are ${numberToWords(result)}`;
+        highlightRow(rIndex-2);
+        let u=new SpeechSynthesisUtterance(text);
+        u.rate=speechRate;
+        u.onend=()=>{ 
+          rIndex++; 
+          timerId = setTimeout(readRow, isDelayedMode ? 1750 : 0);
+        };
+        speechSynthesis.speak(u);
+      } else { tIndex++; rIndex=1; readRow(); }
+    }
+    readRow();
+  }
+
+  function getTablesFromInput(input){
+    let tables=[];
+    input.split(',').forEach(part=>{
+      part=part.trim();
+      if(part.includes('-')){
+        const range=part.split('-');
+        let start=parseInt(range[0],10);
+        let end=parseInt(range[1],10);
+        if(!isNaN(start)&&!isNaN(end)&&start>=MIN&&end<=MAX&&start<=end){
+          for(let i=start;i<=end;i++){ tables.push(i); }
+        } else { tables=[]; return; }
+      } else {
+        const num=parseInt(part,10);
+        if(!isNaN(num)&&num>=MIN&&num<=MAX){ tables.push(num); }
+        else { tables=[]; return; }
+      }
+    });
+    return tables;
+  }
+
+  function clearInput(){ tableInput.value=''; errorMsg.style.display='none'; }
+
+  for(let n=MIN;n<=MAX;n++){
+    const a=document.createElement('a');
+    a.href="javascript:void(0)";
+    a.textContent=n;
+    a.setAttribute('data-n',String(n));
+    a.addEventListener('click',()=>{render(n);});
+    linkGrid.appendChild(a);
+  }
+
+  function setActiveLink(n){ linkGrid.querySelectorAll('a').forEach(a=>{a.classList.toggle('active',parseInt(a.dataset.n,10)===n);}); }
+
+  function render(n){
+    stopSpeaking();
+    currentTableNumber=n; titleEl.textContent=`Table of ${n}`;
+    const rows=[];
+    for(let i=1;i<=ROWS;i++){
+      let result=n*i;
+      let textToSpeak=`${numberToWords(n)} ${numberToWords(i)}s are ${numberToWords(result)}`;
+      rows.push(`<tr data-speak="${textToSpeak}"><td>${n}</td><td>×</td><td>${i}</td><td>=</td><td>${result}</td><td><button class="play-btn" onclick="speak('${textToSpeak}', null, ${i-1})">🔊</button></td></tr>`);
+    }
+    tbodyEl.innerHTML=rows.join('');
+    setActiveLink(n);
+    changeSpeed(0);
+  }
+
+  render(MIN);
+  updateBottomPauseButton();
+
+  window.speak=speak; window.changeSpeed=changeSpeed; window.readFullTable=readFullTable;
+  window.readMultipleTables=readMultipleTables; window.pauseReading=pauseReading;
+  window.toggleRepeat=toggleRepeat; window.clearInput=clearInput;
+  window.toggleRepeatSingle=toggleRepeatSingle; window.setDelayMode = setDelayMode;
+})();
+</script>
+</body>
+</html>
