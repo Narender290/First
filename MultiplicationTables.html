@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Multiplication Tables (2 to 25)</title>
+<style>
+  :root { --maxw: 900px; }
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+    color: #222;
+  }
+
+  .page { max-width: var(--maxw); margin: 20px auto; padding: 16px; position: relative; }
+  .card {
+    background: #fff; border: 1px solid #ddd; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+    padding: 16px;
+  }
+  .card-header { padding-bottom: 16px; }
+  .title { font-size: 26px; margin: 0 0 8px; text-align: left; }
+  .nav { padding: 12px 16px; border-top: 1px solid #eee; border-bottom: 1px solid #eee; background:#fafafa; }
+  .link-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    justify-items: center;
+  }
+  .link-grid a {
+    display: block; padding: 8px 0; text-align: center;
+    border: 1px solid #ddd; border-radius: 8px; text-decoration: none;
+    font-weight: bold; color: #143b76; background: #fff;
+    width: 100%;
+    transition: all 0.2s ease;
+  }
+  .link-grid a:hover { background:#f0f4ff; }
+  .link-grid a.active { background: #143b76; color: #fff; border-color: #143b76; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    border: 1px solid #ccc;
+    table-layout: fixed;
+    font-size: 22px;
+  }
+  td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: center;
+    font-weight: bold;
+    width: 20%;
+  }
+  tbody tr:nth-child(odd) { background: #f9f9f9; }
+
+  .pager {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .pager a {
+    display: inline-block;
+    padding: 8px 14px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    background: #143b76;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .pager a:hover { background: #0f2d5c; }
+  .pager a.disabled {
+    background: #999;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<main class="page">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="title" id="tableTitle">Table of 2</h2>
+    </div>
+    <nav class="nav">
+      <div class="link-grid" id="linkGrid"></div>
+    </nav>
+    <div class="table-wrap">
+      <table>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <a id="prevBtn" href="#">◀ Prev</a>
+      <a id="nextBtn" href="#">Next ▶</a>
+    </div>
+  </div>
+</main>
+
+<script>
+(function () {
+  const MIN = 2, MAX = 25;
+  const ROWS = 10;
+  let currentTableNumber = MIN;
+
+  const titleEl = document.getElementById('tableTitle');
+  const tbodyEl = document.getElementById('tbody');
+  const linkGrid = document.getElementById('linkGrid');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  const tablesOrder = [
+    2,3,4,5,6,7,
+    8,9,10,11,12,13,
+    14,15,16,17,18,19,
+    20,21,22,23,24,25
+  ];
+
+  // Add table links
+  tablesOrder.forEach(n => {
+    const a = document.createElement('a');
+    a.href = "javascript:void(0)";
+    a.textContent = n;
+    a.setAttribute('data-n', String(n));
+    a.addEventListener('click', () => { render(n); });
+    linkGrid.appendChild(a);
+  });
+
+  // Prev/Next click handlers
+  prevBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (currentTableNumber > MIN) render(currentTableNumber - 1);
+  });
+  nextBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    if (currentTableNumber < MAX) render(currentTableNumber + 1);
+  });
+
+  function setActiveLink(n) {
+    linkGrid.querySelectorAll('a').forEach(a => {
+      a.classList.toggle('active', parseInt(a.dataset.n, 10) === n);
+    });
+  }
+
+  function updatePager(n) {
+    prevBtn.classList.toggle('disabled', n === MIN);
+    nextBtn.classList.toggle('disabled', n === MAX);
+  }
+
+  function render(n) {
+    currentTableNumber = n;
+    titleEl.textContent = `Table of ${n}`;
+
+    const rows = [];
+    for (let i = 1; i <= ROWS; i++) {
+      let result = n * i;
+      rows.push(
+        `<tr>
+          <td>${n}</td>
+          <td>×</td>
+          <td>${i}</td>
+          <td>=</td>
+          <td>${result}</td>
+        </tr>`
+      );
+    }
+    tbodyEl.innerHTML = rows.join('');
+    setActiveLink(n);
+    updatePager(n);
+  }
+
+  render(MIN);
+})();
+</script>
+</body>
+</html>
